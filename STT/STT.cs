@@ -71,16 +71,18 @@ namespace STT
 
             PacketQueue = new ConcurrentQueue<byte[]>();
 
+            Client = new UdpClient(25565);
             Console.WriteLine("Enter the other IP address:");
             string ip = Console.ReadLine();
 
-            Client = new UdpClient(ip, 25565);
+            Client.Connect(ip, 25565);
+
             Client.BeginReceive(new AsyncCallback(onRecv), Client);
         }
 
         public void Run()
         {
-            float delta = 1.0f / 60.0f;
+            double delta = 1.0 / 60.0;
             Stopwatch timer = new Stopwatch();
             timer.Start();
             while (running)
@@ -89,7 +91,7 @@ namespace STT
                 processEvents();
                 update(delta);
                 draw(delta);
-                delta = (float)timer.ElapsedMilliseconds / 1000.0f;
+                delta = timer.ElapsedMilliseconds / 1000.0;
             }
         }
 
@@ -115,7 +117,7 @@ namespace STT
 
         byte[] input = new byte[64];
 
-        private void update(float delta)
+        private void update(double delta)
         {
             var keys = SDL.SDL_GetKeyboardState(out int num);
             byte[] rawInput = new byte[num];
@@ -134,6 +136,7 @@ namespace STT
             foreach (var packet in PacketQueue)
             {
                 Console.Write("PACKETS");
+                PacketQueue.TryDequeue(out byte[] p);
             }
 
             gens[activeGen].Keys = input;
@@ -142,8 +145,10 @@ namespace STT
             if (time > 30)
                 time = 0;
             packetTime += delta;
-            if (packetTime > 0.05)
+            //Console.WriteLine(delta);
+            if (packetTime > 1.0)
             {
+                Console.Write("Sent");
                 packetTime = 0;
                 Client.Send(input, input.Length);
             }
@@ -152,12 +157,13 @@ namespace STT
 
         private void onRecv(IAsyncResult result)
         {
+            Console.Write("PACKETS");
             UdpClient state = result.AsyncState as UdpClient;
             IPEndPoint endPoint = new IPEndPoint(0, 25565);
             PacketQueue.Enqueue(state.EndReceive(result, ref endPoint));
             state.BeginReceive(new AsyncCallback(onRecv), state);
         }
-        private void draw(float delta)
+        private void draw(double delta)
         {
             Renderer.Instance.SetDrawColor(23, 23, 23, 255);
             Renderer.Instance.Clear();
