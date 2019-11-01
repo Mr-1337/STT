@@ -116,6 +116,7 @@ namespace STT
         }
 
         byte[] input = new byte[64];
+        byte[] localInput = new byte[64];
         byte[] remoteInput = new byte[64];
 
         private void update(double delta)
@@ -127,10 +128,10 @@ namespace STT
             {
                 int k = (i >= 17) ? -5 : 0;
                 if (rawInput[(int)Input.KeyConstants[i]] == 1)
-                    input[i + k] = 1;
+                    localInput[i + k] = 1;
                 else
                 {
-                    input[i] = 0;
+                    localInput[i + k] = 0;
                 }
             }
 
@@ -145,7 +146,7 @@ namespace STT
 
             for (int i = 0; i < input.Length; i++)
             {
-                input[i] |= remoteInput[i];
+                input[i] = (byte)(remoteInput[i] | localInput[i]);
             }
 
             gens[activeGen].Keys = input;
@@ -159,7 +160,7 @@ namespace STT
             {
                 Console.Write("Sent");
                 packetTime = 0;
-                Client.Send(input, input.Length);
+                Client.Send(localInput, input.Length);
             }
             //((Organ)activeGen).Phaser = 0.005f * MathF.Sin(MathF.PI * 2f * 0.5f * time);
         }
