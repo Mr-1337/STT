@@ -87,4 +87,8 @@
     <ProjectReference Include="..\SDL2\SDL2-CS.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Networking\" />
+  </ItemGroup>
+
 </Project>

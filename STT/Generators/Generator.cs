@@ -15,7 +15,7 @@ namespace STT.Generators
 
         public Generator()
         {
-            Keys = new byte[512];
+            Keys = new byte[64];
         }
 
     }

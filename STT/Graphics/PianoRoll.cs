@@ -24,7 +24,7 @@ namespace STT.Graphics
             KeyGraphics = new List<Key>(48);
             WhiteKeys = new List<Key>(48);
             BlackKeys = new List<Key>(48);
-            Keys = new byte[512];
+            Keys = new byte[64];
             lastX = PianoX;
             genOctave();
             genOctave();
@@ -79,16 +79,13 @@ namespace STT.Graphics
         public void Draw()
         {
 
-            for (int i = 0; i < 37; i++)
+            for (int i = 0; i < Keys.Length; i++)
             {
-                int k = 0;
                 Renderer.Instance.SetDrawColor(255, 255, 255, 255);
-                if (Keys[(int)Input.KeyConstants[i]] == 1)
+                if (Keys[i] == 1)
                 {
-                    if (i >= 17)
-                        k = -5;
-                    if (i + k < KeyGraphics.Count)
-                    KeyGraphics[i + k].Pressed = true;
+                    if (i < KeyGraphics.Count)
+                    KeyGraphics[i].Pressed = true;
                 }
                 else if (i < KeyGraphics.Count)
                     KeyGraphics[i].Pressed = false;

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using SDL2;
@@ -20,8 +23,11 @@ namespace STT
         private List<Generator> gens;
         private int activeGen;
         private PianoRoll PianoRoll { get; set; }
+        private UdpClient Client { get; set; }
+        private ConcurrentQueue<byte[]> PacketQueue { get; set; }
 
-        private double time = 0f;
+        private double time = 0;
+        private double packetTime = 0;
 
         private void Callback(IntPtr userdata, IntPtr stream, int len)
         {
@@ -62,6 +68,14 @@ namespace STT
             gens.Add(new Organ());
             gens.Add(new SineGenerator());
             PianoRoll = new PianoRoll();
+
+            PacketQueue = new ConcurrentQueue<byte[]>();
+
+            Console.WriteLine("Enter the other IP address:");
+            string ip = Console.ReadLine();
+
+            Client = new UdpClient(ip, 25565);
+            Client.BeginReceive(new AsyncCallback(onRecv), Client);
         }
 
         public void Run()
@@ -99,15 +113,50 @@ namespace STT
             }
         }
 
+        byte[] input = new byte[64];
+
         private void update(float delta)
         {
-            Marshal.Copy(SDL.SDL_GetKeyboardState(out int num), gens[activeGen].Keys, 0, num);
-            Marshal.Copy(SDL.SDL_GetKeyboardState(out int num2), PianoRoll.Keys, 0, num2);
+            var keys = SDL.SDL_GetKeyboardState(out int num);
+            byte[] rawInput = new byte[num];
+            Marshal.Copy(keys, rawInput, 0, num);
+            for (int i = 0; i < Input.KeyConstants.Length; i++)
+            {
+                int k = (i >= 17) ? -5 : 0;
+                if (rawInput[(int)Input.KeyConstants[i]] == 1)
+                    input[i + k] = 1;
+                else
+                {
+                    input[i] = 0;
+                }
+            }
+
+            foreach (var packet in PacketQueue)
+            {
+                Console.Write("PACKETS");
+            }
+
+            gens[activeGen].Keys = input;
+            PianoRoll.Keys = input;
+
             if (time > 30)
                 time = 0;
+            packetTime += delta;
+            if (packetTime > 0.05)
+            {
+                packetTime = 0;
+                Client.Send(input, input.Length);
+            }
             //((Organ)activeGen).Phaser = 0.005f * MathF.Sin(MathF.PI * 2f * 0.5f * time);
         }
 
+        private void onRecv(IAsyncResult result)
+        {
+            UdpClient state = result.AsyncState as UdpClient;
+            IPEndPoint endPoint = new IPEndPoint(0, 25565);
+            PacketQueue.Enqueue(state.EndReceive(result, ref endPoint));
+            state.BeginReceive(new AsyncCallback(onRecv), state);
+        }
         private void draw(float delta)
         {
             Renderer.Instance.SetDrawColor(23, 23, 23, 255);
