@@ -116,6 +116,7 @@ namespace STT
         }
 
         byte[] input = new byte[64];
+        byte[] remoteInput = new byte[64];
 
         private void update(double delta)
         {
@@ -135,8 +136,16 @@ namespace STT
 
             foreach (var packet in PacketQueue)
             {
-                Console.Write("PACKETS");
                 PacketQueue.TryDequeue(out byte[] p);
+                for (int i = 0; i < p.Length; i++)
+                {
+                        remoteInput[i] = p[i];
+                }
+            }
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                input[i] |= remoteInput[i];
             }
 
             gens[activeGen].Keys = input;
@@ -146,7 +155,7 @@ namespace STT
                 time = 0;
             packetTime += delta;
             //Console.WriteLine(delta);
-            if (packetTime > 1.0)
+            if (packetTime > 0.1)
             {
                 Console.Write("Sent");
                 packetTime = 0;
@@ -157,7 +166,6 @@ namespace STT
 
         private void onRecv(IAsyncResult result)
         {
-            Console.Write("PACKETS");
             UdpClient state = result.AsyncState as UdpClient;
             IPEndPoint endPoint = new IPEndPoint(0, 25565);
             PacketQueue.Enqueue(state.EndReceive(result, ref endPoint));
