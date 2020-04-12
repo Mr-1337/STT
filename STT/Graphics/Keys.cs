@@ -23,7 +23,7 @@ namespace STT.Graphics
 
     class BlackKey : Key
     {
-        public override byte Color => 42;
+        public override byte Color => 82;
         public override float ScaleX => 0.5f;
         public override float ScaleY => 0.6f;
     }

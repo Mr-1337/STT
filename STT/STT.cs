@@ -71,11 +71,11 @@ namespace STT
 
             PacketQueue = new ConcurrentQueue<byte[]>();
 
-            Client = new UdpClient(25565);
+            Client = new UdpClient(25570);
             Console.WriteLine("Enter the other IP address:");
             string ip = Console.ReadLine();
 
-            Client.Connect(ip, 25565);
+            Client.Connect(ip, 25570);
 
             Client.BeginReceive(new AsyncCallback(onRecv), Client);
         }
@@ -125,14 +125,11 @@ namespace STT
             byte[] rawInput = new byte[num];
             Marshal.Copy(keys, rawInput, 0, num);
             for (int i = 0; i < Input.KeyConstants.Length; i++)
-            {
+            {    
                 int k = (i >= 17) ? -5 : 0;
+                localInput[i] = 0;
                 if (rawInput[(int)Input.KeyConstants[i]] == 1)
                     localInput[i + k] = 1;
-                else
-                {
-                    localInput[i + k] = 0;
-                }
             }
 
             foreach (var packet in PacketQueue)
@@ -156,9 +153,9 @@ namespace STT
                 time = 0;
             packetTime += delta;
             //Console.WriteLine(delta);
-            if (packetTime > 0.1)
+            if (packetTime > 0.05)
             {
-                Console.Write("Sent");
+                //Console.Write("Sent");
                 packetTime = 0;
                 Client.Send(localInput, input.Length);
             }

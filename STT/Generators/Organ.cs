@@ -54,7 +54,7 @@ namespace STT.Generators
             gen.FreqMult = 1;
             amplitude += volume * gen.GetSample(time);
 
-            //amplitude = 0.08f * Math.Sign(amplitude) * (1 - (Math.Exp(-1 * Math.Abs(amplitude) * 500)));
+            amplitude = 0.08f * Math.Sign(amplitude) * (1 - (Math.Exp(-1 * Math.Abs(amplitude) * 500)));
 
             return amplitude;
         }

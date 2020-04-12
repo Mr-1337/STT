@@ -16,7 +16,7 @@ namespace STT.Generators
             {
                 if (Keys[i] == 1)
                 {
-                    Frequency = 220 * Math.Pow(2, (i - 9) / 12.0);
+                    Frequency = 220 * Math.Pow(2, (i - 9 - 24) / 12.0);
                     double period = 1f / Frequency;
                     double amplitude = 2 * (time % period) / period - 1.0;
                     total += 0.05f * amplitude;
